@@ -1,60 +1,76 @@
 pipeline {
-agent any
-tools {
-maven &#39;Maven-3.9&#39;
-jdk &#39;JDK-17&#39;
-}
-environment {
-APP_NAME = &#39;currency-converter&#39;
-GITHUB_URL = &#39;https://github.com/&lt;your-username&gt;/currency-converter.git&#39;
-}
-stages {
-stage(&#39;Checkout&#39;) {
-steps {
+    agent any
 
-git branch: &#39;main&#39;,
-url: &quot;${GITHUB_URL}&quot;
-echo &quot;Source code checked out successfully&quot;
-}
-}
-stage(&#39;Build&#39;) {
-steps {
-sh &#39;mvn clean compile&#39;
-echo &quot;Build completed&quot;
-}
-}
-stage(&#39;Test&#39;) {
-steps {
-sh &#39;mvn test&#39;
-}
-post {
-always {
-junit &#39;target/surefire-reports/*.xml&#39;
-echo &quot;JUnit test results published&quot;
-}
-}
-}
-stage(&#39;Package&#39;) {
-steps {
-sh &#39;mvn package -DskipTests&#39;
-archiveArtifacts artifacts: &#39;target/*.jar&#39;,
-fingerprint: true
-echo &quot;JAR archived: ${APP_NAME}&quot;
-}
-}
-stage(&#39;Deploy&#39;) {
-steps {
-echo &quot;Deploying ${APP_NAME} to target environment...&quot;
-sh &#39;java -jar target/*.jar || true&#39;
-}
-}
-}
-post {
-success {
-echo &quot;Pipeline SUCCESS - all tests passed!&quot;
-}
-failure {
-echo &quot;Pipeline FAILED - check test reports above&quot;
-}
-}
+    tools {
+        maven 'Maven-3.9'
+        jdk 'JDK-17'
+    }
+
+    environment {
+        APP_NAME = 'currency-converter'
+        GITHUB_URL = 'https://github.com/<your-username>/currency-converter.git'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: "${GITHUB_URL}"
+
+                echo "Source code checked out successfully"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+
+                echo "Build completed"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+
+                    echo "JUnit test results published"
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+
+                archiveArtifacts artifacts: 'target/*.jar',
+                                  fingerprint: true
+
+                echo "JAR archived: ${APP_NAME}"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploying ${APP_NAME} to target environment..."
+
+                sh 'java -jar target/*.jar || true'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline SUCCESS - all tests passed!"
+        }
+
+        failure {
+            echo "Pipeline FAILED - check test reports above"
+        }
+    }
 }
